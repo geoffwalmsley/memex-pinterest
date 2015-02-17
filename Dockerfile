@@ -23,9 +23,9 @@ RUN pip install \
 	tqdm \
 	tornado
 
-RUN pip install numpy --upgrade
-RUN pip install scipy --upgrade
-RUN pip install scikit-learn
+#RUN pip install numpy --upgrade
+#RUN pip install scipy --upgrade
+#RUN pip install scikit-learn
 
 RUN git clone https://github.com/TeamHG-Memex/memex-scrapy-utils.git /memex-scrapy-utils
 WORKDIR /memex-scrapy-utils

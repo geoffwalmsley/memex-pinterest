@@ -25,6 +25,8 @@ cd ui
 #restart in foreground
 echo "Killing existing apache service and restarting in foreground..." 
 service apache2 stop | true
-/usr/sbin/apache2ctl -D FOREGROUND -e debug
+service apache2 start
+tail -f /var/log/apache2/error.log
+#/usr/sbin/apache2ctl -D FOREGROUND -e debug
 
 #python server.py
