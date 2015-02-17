@@ -21,4 +21,4 @@ cd ../../
 export PYTHONPATH=`pwd`
 cd ui
 
-gunicorn -w 8 --log-level debug --bind=0.0.0.0:80 server:app
+gunicorn -w 8 --log-level debug --bind=0.0.0.0:80 --timeout 1200 server:app
