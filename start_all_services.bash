@@ -21,12 +21,4 @@ cd ../../
 export PYTHONPATH=`pwd`
 cd ui
 
-#stop any existing apache service and
-#restart in foreground
-echo "Killing existing apache service and restarting in foreground..." 
-service apache2 stop | true
-service apache2 start
-tail -f /var/log/apache2/error.log
-#/usr/sbin/apache2ctl -D FOREGROUND -e debug
-
-#python server.py
+gunicorn -w 8 --log-level debug --bind=0.0.0.0:80 server:app

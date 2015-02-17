@@ -21,22 +21,17 @@ RUN pip install \
 	flask \
 	html2text \
 	tqdm \
-	tornado
+	gunicorn
 
-#RUN pip install numpy --upgrade
-#RUN pip install scipy --upgrade
-#RUN pip install scikit-learn
+RUN pip install numpy --upgrade
+RUN pip install scipy --upgrade
+RUN pip install scikit-learn
 
 RUN git clone https://github.com/TeamHG-Memex/memex-scrapy-utils.git /memex-scrapy-utils
 WORKDIR /memex-scrapy-utils
 RUN python setup.py install
 
 ADD . /memex-pinterest
-RUN cp /memex-pinterest/ui/memexpin.conf /etc/apache2/sites-available/
-RUN cp /memex-pinterest/ui/apache2.conf /etc/apache2/apache2.conf
-RUN chmod 644 /etc/apache2/sites-available/memexpin.conf
-RUN a2dissite 000-default.conf
-RUN a2ensite memexpin.conf
 
 EXPOSE 80
 EXPOSE 6800
