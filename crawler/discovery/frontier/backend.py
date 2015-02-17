@@ -109,10 +109,6 @@ class MongodbBackend(Backend):
             req.last_update = now
             self.collection.update(self._get_mongo_spec(req), {
                 "$set": self._to_mongo_dict(req)}, upsert=False)
-
-        remaining = self.collection.find_one({'state': {'$ne': self.State.CRAWLED}})
-        if remaining is None:
-            self.manager._finished = True
         return requests
 
     def _get_mongo_spec(self, obj):
