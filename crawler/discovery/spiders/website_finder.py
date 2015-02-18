@@ -21,7 +21,42 @@ from discovery.screenshots import save_screenshot
 from crawler.discovery.items import WebpageItemLoader
 
 
-class WebsiteFinderSpider(scrapy.Spider):
+class SplashSpiderBase(object):
+    def __init__(self, screenshot_dir):
+        self.screenshot_dir = screenshot_dir
+        log.msg("Screenshot dir: ", log.INFO)
+        log.msg(self.screenshot_dir, log.INFO)
+
+    def _splash_request(self, url):
+        screq = scrapy.Request(url, meta={
+            'splash': {
+                'html': '1' if self.save_html else '0',
+                'png': '1',
+                'wait': '2.0',
+                'width': '640',
+                'height': '480',
+                'timeout': '60',
+                'images' : 0
+            },
+            'download_timeout': 60,
+        })
+        return screq
+
+    def _process_splash_response(self, response, splash_response, ld):
+        data = json.loads(splash_response.body, encoding='utf8')
+
+        screenshot_path = save_screenshot(
+            screenshot_dir=self.screenshot_dir,
+            prefix=get_domain(response.url),
+            png=base64.b64decode(data["png"]),
+        )
+        ld.add_value('screenshot_path', screenshot_path)
+
+        if self.save_html:
+            ld.add_value('html_rendered', data['html'])
+
+
+class WebsiteFinderSpider(scrapy.Spider, SplashSpiderBase):
     """
     A spider to find new websites given a comma-separated list of seed URLs.
     To start it from command-line run::
@@ -78,9 +113,7 @@ class WebsiteFinderSpider(scrapy.Spider):
         self.start_urls = [add_scheme_if_missing(url) for url in seed_urls.split(',')]
         self.req_count = defaultdict(int)
         super(WebsiteFinderSpider, self).__init__(name=None, **kwargs)
-        self.screenshot_dir = screenshot_dir
-        log.msg("Screenshot dir: ", log.INFO)
-        log.msg(self.screenshot_dir, log.INFO)
+        super(SplashSpiderBase, self).__init__(screenshot_dir=screenshot_dir)
 
     def parse(self, response):
         if 'referrer_url' in response.meta:
@@ -153,34 +186,6 @@ class WebsiteFinderSpider(scrapy.Spider):
                     count_key=domain,
                     max_count=self.max_external_links_per_domain
                 )
-
-    def _splash_request(self, url):
-        screq = scrapy.Request(url, meta={
-            'splash': {
-                'html': '1' if self.save_html else '0',
-                'png': '1',
-                'wait': '2.0',
-                'width': '640',
-                'height': '480',
-                'timeout': '60',
-                'images' : 0
-            },
-            'download_timeout': 60,
-        })
-        return screq
-
-    def _process_splash_response(self, response, splash_response, ld):
-        data = json.loads(splash_response.body, encoding='utf8')
-
-        screenshot_path = save_screenshot(
-            screenshot_dir=self.screenshot_dir,
-            prefix=get_domain(response.url),
-            png=base64.b64decode(data["png"]),
-        )
-        ld.add_value('screenshot_path', screenshot_path)
-
-        if self.save_html:
-            ld.add_value('html_rendered', data['html'])
 
     def _get_links(self, response):
         links = LinkExtractor().extract_links(response)
