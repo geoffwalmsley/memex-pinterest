@@ -5,7 +5,7 @@ echo "Starting scrapyd..."
 ps aux
 rm /memex-pinterest/twistd.pid | true
 scrapyd --pidfile=/memex-pinterest/twistd.pid &
-sleep 5
+sleep 15
 cd searchengine
 scrapyd-deploy scrapyd -p searchengine-project
 cd ..
