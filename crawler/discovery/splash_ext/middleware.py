@@ -6,6 +6,7 @@ from urllib import urlencode
 import scrapy
 from scrapy import log
 
+import pdb
 
 class SplashMiddleware(object):
     """
@@ -65,30 +66,25 @@ class SplashMiddleware(object):
                     float(value) + self.SPLASH_EXTRA_TIMEOUT
                 )
 
-        meta = request.meta.copy()
-        del meta['splash']
-        meta['_splash'] = True
-
         if self.RESPECT_SLOTS:
             # Use the same download slot to (sort of) respect download
             # delays and concurrency options.
-            meta['download_slot'] = self._get_slot_key(request)
+            request.meta['download_slot'] = self._get_slot_key(request)
+
+        del request.meta['splash']
+        request.meta['_splash'] = True
+        request.meta['_origin_url'] = request.url
+
+        # FIXME: original HTTP headers are not respected.
+        # To respect them changes to Splash are needed.
+        request.headers = {}
+        request._set_url(self.splash_url(splash_options, request.url))
 
         self.crawler.stats.inc_value('splash/request_count')
 
-        req_rep = request.replace(
-            url=self.splash_url(splash_options, request.url),
-            meta=meta,
-
-            # FIXME: original HTTP headers are not respected.
-            # To respect them changes to Splash are needed.
-            headers={},
-        )
-
-        return req_rep
-
     def process_response(self, request, response, spider):
         if '_splash' in request.meta:
+            response._set_url(request.meta['_origin_url'])
             self.crawler.stats.inc_value('splash/response_count/%s' % response.status)
 
         return response

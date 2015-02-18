@@ -1,4 +1,4 @@
-BOT_NAME = 'discovery'
+OT_NAME = 'discovery'
 SPIDER_MODULES = ['discovery.spiders']
 NEWSPIDER_MODULE = 'discovery.spiders'
 
@@ -8,10 +8,10 @@ SPIDER_MIDDLEWARES = {
 
 DOWNLOADER_MIDDLEWARES = {
     'discovery.robots_mw.RobotsCrawlDelayMiddleware': 100,
-    'discovery.randomua_mw.RandomUserAgentMiddleware' : 250,
+#    'discovery.randomua_mw.RandomUserAgentMiddleware' : 250,
     'crawlfrontier.contrib.scrapy.middlewares.schedulers.SchedulerDownloaderMiddleware': 500,
-    'discovery.splash_ext.SplashMiddleware': 950,
-    'discovery.proxy_mw.OnionProxyMiddleware' : 1000,
+    'discovery.proxy_mw.OnionProxyMiddleware' : 950,
+    'discovery.splash_ext.SplashMiddleware': 1000,
 }
 
 USER_AGENT_LIST = [
@@ -26,8 +26,8 @@ ROBOTS_CRAWLDELAY_ENABLED = True
 AUTOTHROTTLE_ENABLED = False  # it doesn't play well with RobotsCrawlDelayMiddleware
 DUPEFILTER_CLASS = 'discovery.splash_ext.SplashAwareDupeFilter'  # needed by SplashMiddleware
 HTTPCACHE_STORAGE = 'discovery.splash_ext.SplashAwareFSCacheStorage'  # needed by SplashMiddleware
-SPLASH_URL = 'http://splash:8050'
-SPLASH_PROXY_URL = 'http://splash:8051'
+SPLASH_URL = 'http://localhost:8050'
+SPLASH_PROXY_URL = 'http://localhost:8051'
 
 MONGO_URI = "localhost:27017"
 MONGO_DATABASE = 'MemexHack'
@@ -42,7 +42,7 @@ DEPTH_STATS_VERBOSE = True
 DEPTH_PRIORITY = True
 DEPTH_LIMIT = 3  # make sure to adjust this when changing depth-related spider attributes
 AJAXCRAWL_ENABLED = True
-DOWNLOAD_TIMEOUT = 60  # default was 180s
+DOWNLOAD_TIMEOUT = 180  # default was 180s
 REDIRECT_MAX_TIMES = 5  # default was 20
 CLOSESPIDER_ITEMCOUNT = 300  # ~100 websites max; don't crawl the whole Internet
 DOWNLOAD_DELAY = 1

@@ -4,6 +4,7 @@ from crawler.discovery.urlutils import (
     add_scheme_if_missing,
     get_domain,
 )
+from website_finder import SplashSpiderBase
 
 from scrapy.spider import Spider
 from scrapy.http import Request
@@ -12,16 +13,20 @@ from scrapy.utils.httpobj import urlparse_cached
 from scrapy import log
 
 from datetime import datetime
+import pdb
 
-class TopicalFinder(Spider):
+class TopicalFinder(Spider, SplashSpiderBase):
     name = 'topical_finder'
 
     save_html = True
+    use_splash = True
 
-    def __init__(self, seed_urls, **kwargs):
+    def __init__(self, seed_urls, screenshot_dir='.', **kwargs):
         # TODO: Implement a random seed mode: e.g. starting from already discovered front pages,
         # but not visited domains
         super(TopicalFinder, self).__init__(**kwargs)
+        super(SplashSpiderBase, self).__init__(screenshot_dir=screenshot_dir)
+        self.screenshot_dir = screenshot_dir
         self.start_urls = [add_scheme_if_missing(url) for url in seed_urls.split(',')]
         self.ranker = Ranker.load()
         self.linkextractor = LinkExtractor()
@@ -31,7 +36,10 @@ class TopicalFinder(Spider):
             yield self.make_requests_from_url(url, is_seed=True)
 
     def make_requests_from_url(self, url, is_seed=False):
-        r = super(TopicalFinder, self).make_requests_from_url(url)
+        if self.use_splash:
+            r = self._splash_request(url)
+        else:
+            r = super(TopicalFinder, self).make_requests_from_url(url)
         r.meta['score'] = 0.0
         r.meta['is_seed'] = False
 
@@ -41,15 +49,20 @@ class TopicalFinder(Spider):
         return r
 
     def parse(self, response):
-
-        yield self._load_webpage_item(response, is_seed=response.meta['is_seed']).load_item()
+        ld = self._load_webpage_item(response, is_seed=response.meta['is_seed'])
+        self._process_splash_response(response, response, ld)
+        yield ld.load_item()
 
         body = response.body_as_unicode().strip().encode('utf8') or '<html/>'
         score = self.ranker.score_html(body)
         log.msg("TC: %s has score=%f" % (response.url, score))
         if score > 0.5:
             for link in self.linkextractor.extract_links(response):
-                r = Request(url=link.url)
+                if self.use_splash:
+                    r = self._splash_request(url=link.url)
+                else:
+                    r = Request(url=link.url)
+
                 r.meta.update(link_text=link.text)
                 url_parts = urlparse_cached(r)
                 path_parts = url_parts.path.split('/')
@@ -70,7 +83,9 @@ class TopicalFinder(Spider):
         ld.add_value('crawler_score', response.meta['score'])
 
         if self.save_html:
-            ld.add_value('html', response.body_as_unicode())  # FIXME: still could be invalid UTF-8
+            # FIXME: still could be invalid UTF-8
+            # FIXME: unpack json from Splash
+            ld.add_value('html', response.body_as_unicode())
 
         if 'link' in response.meta:
             link = response.meta['link']
