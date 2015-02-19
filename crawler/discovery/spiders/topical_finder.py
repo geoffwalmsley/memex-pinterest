@@ -3,6 +3,7 @@ from crawler.discovery.items import WebpageItemLoader
 from crawler.discovery.urlutils import (
     add_scheme_if_missing,
     get_domain,
+    is_external_url
 )
 from website_finder import SplashSpiderBase
 
@@ -83,7 +84,7 @@ class TopicalFinder(SplashSpiderBase):
 
         body = response.body_as_unicode().strip().encode('utf8') or '<html/>'
         score = self.ranker.score_html(body)
-        log.msg("TC: %s has score=%f" % (response.url, score))
+        log.msg("TC: %s has score=%f" % (response.url, score), _level=log.DEBUG)
         if score > 0.5:
             for link in self.linkextractor.extract_links(response):
                 if self.use_splash:
@@ -91,7 +92,19 @@ class TopicalFinder(SplashSpiderBase):
                 else:
                     r = Request(url=link.url)
 
-                r.meta.update(link_text=link.text)
+                external = is_external_url(response.url, link.url)
+                depth = response.meta.get('link_depth', 0)
+                r.meta.update({
+                    'link': {
+                        'url': link.url,
+                        'text': link.text,
+                        'fragment': link.fragment,
+                        'nofollow': link.nofollow},
+                    'link_depth': 0 if external else depth + 1,
+                    'referrer_depth': depth,
+                    'referrer_url': response.url,
+                })
+
                 url_parts = urlparse_cached(r)
                 path_parts = url_parts.path.split('/')
                 r.meta['score'] = 1.0 / len(path_parts)
@@ -115,8 +128,8 @@ class TopicalFinder(SplashSpiderBase):
 
         if 'link' in response.meta:
             link = response.meta['link']
-            ld.add_value('link_text', link.text)
-            ld.add_value('link_url', link.url)
+            ld.add_value('link_text', link['text'])
+            ld.add_value('link_url', link['url'])
             ld.add_value('referrer_url', response.meta['referrer_url'])
             ld.add_value('referrer_depth', response.meta['referrer_depth'])
         return ld
