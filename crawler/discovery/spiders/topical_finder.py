@@ -6,29 +6,44 @@ from crawler.discovery.urlutils import (
 )
 from website_finder import SplashSpiderBase
 
-from scrapy.spider import Spider
 from scrapy.http import Request, TextResponse
 from scrapy.contrib.linkextractors import LinkExtractor
 from scrapy.utils.httpobj import urlparse_cached
 from scrapy import log
 
 from datetime import datetime
-import pdb
+
 
 class TopicalFinder(SplashSpiderBase):
     name = 'topical_finder'
 
-    save_html = True
-    use_splash = False
+    save_html = None
+    use_splash = None
 
-    def __init__(self, seed_urls, screenshot_dir='.', **kwargs):
-        # TODO: Implement a random seed mode: e.g. starting from already discovered front pages,
-        # but not visited domains
+    def __init__(self, seed_urls=None, save_html=1, use_splash=0, screenshot_dir=None, op_time=10, **kwargs):
+        '''
+        Constructs spider instance from command=line or scrapyd daemon.
+
+        :param seed_urls: Comma-separated list of URLs, if empty crawler will be following not crawled URLs from storage
+        :param save_html: boolean 0/1
+        :param use_splash: boolean 0/1
+        :param screenshot_dir: used only when use_splash=1
+        :param op_time: operating time in minutes, negative - don't use that constraint
+        :param kwargs:
+        :return:
+        '''
         super(TopicalFinder, self).__init__(screenshot_dir=screenshot_dir, **kwargs)
         self.screenshot_dir = screenshot_dir
-        self.start_urls = [add_scheme_if_missing(url) for url in seed_urls.split(',')]
+        if seed_urls:
+            self.start_urls = [add_scheme_if_missing(url) for url in seed_urls.split(',')]
         self.ranker = Ranker.load()
         self.linkextractor = LinkExtractor()
+        self.save_html = bool(save_html)
+        self.use_splash = bool(use_splash)
+        self.operating_time = int(op_time) * 60
+
+        self.start_time = datetime.utcnow()
+        self.finishing = False
 
     def start_requests(self):
         for url in self.start_urls:
@@ -52,6 +67,16 @@ class TopicalFinder(SplashSpiderBase):
         if self.use_splash:
             self._process_splash_response(response, ld)
         yield ld.load_item()
+
+        if self.finishing:
+            return
+
+        now = datetime.utcnow()
+        if self.operating_time > 0 and (now - self.start_time).total_seconds() > self.operating_time:
+            log.msg("Reached operating time constraint. Waiting for Scrapy queue to exhaust.")
+            self.finishing = True
+            self.crawler.stop()
+            return
 
         if not isinstance(response, TextResponse):
             return
