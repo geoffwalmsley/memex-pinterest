@@ -44,12 +44,14 @@ DEPTH_LIMIT = 3  # make sure to adjust this when changing depth-related spider a
 AJAXCRAWL_ENABLED = True
 DOWNLOAD_TIMEOUT = 180  # default was 180s
 REDIRECT_MAX_TIMES = 5  # default was 20
-CLOSESPIDER_ITEMCOUNT = 300  # ~100 websites max; don't crawl the whole Internet
+#CLOSESPIDER_ITEMCOUNT = 300  # don't crawl the whole Internet
 DOWNLOAD_DELAY = 1
 DUPEFILTER_DEBUG = True
 
 import logging
 logging.getLogger("tldextract").setLevel(logging.INFO)
+
+LOGSTATS_INTERVAL = 10
 
 #USER_AGENT = 'crawler (+http://www.yourdomain.com)'
 
@@ -57,3 +59,5 @@ FRONTIER_SETTINGS = 'discovery.frontier.settings'
 SCHEDULER = 'crawlfrontier.contrib.scrapy.schedulers.frontier.CrawlFrontierScheduler'
 
 # TODO concurrency and performance
+CONCURRENT_REQUESTS = 64
+CONCURRENT_REQUESTS_PER_DOMAIN = 5
