@@ -74,7 +74,7 @@ class MemexMongoUtils(object):
             db.create_collection(seed_collection_name)
 
             # create index and drop any dupes
-            self.urlinfo_collection.ensure_index("url", unique=True, drop_dups=True)
+            self.urlinfo_collection.ensure_index("meta.fingerprint", unique=True, drop_dups=True)
             self.hostinfo_collection.ensure_index("host", unique=True, drop_dups=True)
             self.seed_collection.ensure_index("url", unique=True, drop_dups=True)
             self.hostinfo_collection.ensure_index("host_score")
