@@ -77,19 +77,19 @@ class MongodbBackend(Backend):
         backend_page.status = response.status_code
         return backend_page
 
-    def request_error(self, page, error):
-        # Log
-        self.manager.logger.backend.debug('PAGE_CRAWLED_ERROR page=%s error=%s' % (page, error))
+    def request_error(self, request, error):
+        self.manager.logger.backend.debug('PAGE_CRAWLED_ERROR page=%s error=%s' % (request, error))
+        now = datetime.utcnow()
 
-        # process page crawled
-        backend_page = self._page_crawled(page)
+        backend_page, created = self._get_or_create_request(request)
 
-        # Update error fields
+        if created:
+            backend_page.created_at = now
+        backend_page.last_update = now
+
         backend_page.state = self.State.ERROR
         self.collection.update(self._get_mongo_spec(backend_page),
                                {"$set": self._to_mongo_dict(backend_page)}, upsert=False)
-
-        # Return updated page
         return backend_page
 
     def get_next_requests(self, max_next_pages, downloader_info=None):
