@@ -4,6 +4,8 @@ from pymongo import MongoClient, DESCENDING
 from crawlfrontier import Backend, Request, Response
 from crawlfrontier.exceptions import NotConfigured
 
+from ui.mongoutils.memex_mongo_utils import MemexMongoUtils
+
 
 class MongodbBackend(Backend):
     name = 'Mongodb Backend'
@@ -22,7 +24,11 @@ class MongodbBackend(Backend):
             raise NotConfigured
         self.client = MongoClient(mongo_hostname, mongo_port)
         mongo_db = settings.get('BACKEND_MONGO_DB_NAME')
-        mongo_collection = settings.get('BACKEND_MONGO_COLLECTION_NAME', 'links')
+
+        mmu = MemexMongoUtils(address=mongo_hostname, port=mongo_port)
+        mongo_collection = settings.get('BACKEND_MONGO_COLLECTION_NAME', mmu.urlinfo_collection.name)
+        del mmu
+
         self.db = self.client[mongo_db]
         self.collection = self.db[mongo_collection]
         self.manager = manager
