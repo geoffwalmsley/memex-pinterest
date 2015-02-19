@@ -3,10 +3,9 @@ from __future__ import absolute_import
 import logging
 from urlparse import urljoin
 from urllib import urlencode
-import scrapy
+import json
 from scrapy import log
 
-import pdb
 
 class SplashMiddleware(object):
     """
@@ -85,8 +84,14 @@ class SplashMiddleware(object):
     def process_response(self, request, response, spider):
         if '_splash' in request.meta:
             response._set_url(request.meta['_origin_url'])
-            self.crawler.stats.inc_value('splash/response_count/%s' % response.status)
+            data = json.loads(response.body, encoding='utf8')
+            response.request = request
+            response.meta['splash_response'] = data
+            if 'html' in data:
+                response._encoding = response.encoding
+                response._set_body(data['html'])
 
+            self.crawler.stats.inc_value('splash/response_count/%s' % response.status)
         return response
 
     def _get_slot_key(self, request_or_response):

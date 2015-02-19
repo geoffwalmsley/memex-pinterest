@@ -7,7 +7,7 @@ from crawler.discovery.urlutils import (
 from website_finder import SplashSpiderBase
 
 from scrapy.spider import Spider
-from scrapy.http import Request
+from scrapy.http import Request, TextResponse
 from scrapy.contrib.linkextractors import LinkExtractor
 from scrapy.utils.httpobj import urlparse_cached
 from scrapy import log
@@ -15,17 +15,16 @@ from scrapy import log
 from datetime import datetime
 import pdb
 
-class TopicalFinder(Spider, SplashSpiderBase):
+class TopicalFinder(SplashSpiderBase):
     name = 'topical_finder'
 
     save_html = True
-    use_splash = True
+    use_splash = False
 
     def __init__(self, seed_urls, screenshot_dir='.', **kwargs):
         # TODO: Implement a random seed mode: e.g. starting from already discovered front pages,
         # but not visited domains
-        super(TopicalFinder, self).__init__(**kwargs)
-        super(SplashSpiderBase, self).__init__(screenshot_dir=screenshot_dir)
+        super(TopicalFinder, self).__init__(screenshot_dir=screenshot_dir, **kwargs)
         self.screenshot_dir = screenshot_dir
         self.start_urls = [add_scheme_if_missing(url) for url in seed_urls.split(',')]
         self.ranker = Ranker.load()
@@ -50,8 +49,12 @@ class TopicalFinder(Spider, SplashSpiderBase):
 
     def parse(self, response):
         ld = self._load_webpage_item(response, is_seed=response.meta['is_seed'])
-        self._process_splash_response(response, response, ld)
+        if self.use_splash:
+            self._process_splash_response(response, ld)
         yield ld.load_item()
+
+        if not isinstance(response, TextResponse):
+            return
 
         body = response.body_as_unicode().strip().encode('utf8') or '<html/>'
         score = self.ranker.score_html(body)
@@ -83,8 +86,6 @@ class TopicalFinder(Spider, SplashSpiderBase):
         ld.add_value('crawler_score', response.meta['score'])
 
         if self.save_html:
-            # FIXME: still could be invalid UTF-8
-            # FIXME: unpack json from Splash
             ld.add_value('html', response.body_as_unicode())
 
         if 'link' in response.meta:

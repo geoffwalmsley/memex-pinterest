@@ -8,7 +8,7 @@ SPIDER_MIDDLEWARES = {
 
 DOWNLOADER_MIDDLEWARES = {
     'discovery.robots_mw.RobotsCrawlDelayMiddleware': 100,
-#    'discovery.randomua_mw.RandomUserAgentMiddleware' : 250,
+    'discovery.randomua_mw.RandomUserAgentMiddleware' : 250,
     'crawlfrontier.contrib.scrapy.middlewares.schedulers.SchedulerDownloaderMiddleware': 500,
     'discovery.proxy_mw.OnionProxyMiddleware' : 950,
     'discovery.splash_ext.SplashMiddleware': 1000,
