@@ -6,6 +6,7 @@ nmap -p 27017 mongodb
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $DIR
 bash start_crawl_services.bash
+export PYTHONPATH=`pwd`
 cd ui/mongoutils
 
 #needs to be moved out or db will reset everytime application is started
