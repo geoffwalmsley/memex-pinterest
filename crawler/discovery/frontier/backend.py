@@ -26,7 +26,7 @@ class MongodbBackend(Backend):
         mongo_db = settings.get('BACKEND_MONGO_DB_NAME')
 
         mmu = MemexMongoUtils(address=mongo_hostname, port=mongo_port)
-        mongo_collection = settings.get('BACKEND_MONGO_COLLECTION_NAME', mmu.urlinfo_collection.name)
+        mongo_collection = settings.get('BACKEND_MONGO_COLLECTION_NAME', mmu.cf_collection.name)
         del mmu
 
         self.db = self.client[mongo_db]
