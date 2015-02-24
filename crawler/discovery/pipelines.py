@@ -50,10 +50,3 @@ class SourcePinPipeline(object):
 
     def process_item(self, item, spider):
         self.mmu.insert_url(**dict(item))
-
-class SourcePinPipelineCrawlFrontier(SourcePinPipeline):
-    def __init__(self, mongo_uri):
-        super(SourcePinPipelineCrawlFrontier, self).__init__(mongo_uri)
-
-    def process_item(self, item, spider):
-        self.mmu.insert_url(skip_urlinfo=True, **dict(item))

@@ -118,16 +118,12 @@ def urls_handler(host = None, which_collection  = "crawl-data"):
 
     for url_dic in url_dics:
         url_dic.pop("_id")
-
-        meta = url_dic['meta']
-        url_dic['host'] = meta['domain']['netloc']
-        url_dic['is_seed'] = meta['is_seed']
         try:
-            if url_dic['state'] == 'CRAWLED':
-                date = meta['created_at']
-                url_dic["crawled_at"] = date.strftime("%Y-%m-%d %H:%M:%S")
+            date = url_dic["crawled_at"]
+            url_dic["crawled_at"] = date.strftime("%Y-%m-%d %H:%M:%S")
         except:
             url_dic["crawled_at"] = None
+
     return url_dics
 
 
