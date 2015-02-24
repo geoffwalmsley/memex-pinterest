@@ -31,9 +31,9 @@ SPLASH_PROXY_URL = 'http://localhost:8051'
 
 MONGO_URI = "localhost:27017"
 MONGO_DATABASE = 'MemexHack'
-#ITEM_PIPELINES = {
-#    'discovery.pipelines.SourcePinPipeline': 100,
-#}
+ITEM_PIPELINES = {
+    'discovery.pipelines.SourcePinPipelineCrawlFrontier': 100,
+}
 
 HTTPCACHE_ENABLED = True
 

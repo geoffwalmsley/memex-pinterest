@@ -173,7 +173,7 @@ class MemexMongoUtils(object):
                     # doc with same url exists, skip
                     pass
 
-    def insert_url(self, **kwargs):
+    def insert_url(self, skip_urlinfo=False, **kwargs):
         '''
         Inserts a URL and properly increments the needed host document
         
@@ -190,7 +190,8 @@ class MemexMongoUtils(object):
         
         #throws exception if URL already exists, user of method
         #should take this into account
-        self.urlinfo_collection.save(kwargs)
+        if not skip_urlinfo:
+            self.urlinfo_collection.save(kwargs)
         host_doc = {"host" : host, "num_urls" : 1, "host_score" : None}
 
         #try to insert a new host doc, if fail increment url count
