@@ -118,21 +118,26 @@ def urls_handler(host = None, which_collection  = "crawl-data"):
 
     for url_dic in url_dics:
         url_dic.pop("_id")
+
+        meta = url_dic['meta']
+        url_dic['host'] = meta['domain']['netloc']
+        url_dic['is_seed'] = meta['is_seed']
         try:
-            date = url_dic["crawled_at"]
-            url_dic["crawled_at"] = date.strftime("%Y-%m-%d %H:%M:%S")
+            if url_dic['state'] == 'CRAWLED':
+                date = meta['created_at']
+                url_dic["crawled_at"] = date.strftime("%Y-%m-%d %H:%M:%S")
         except:
             url_dic["crawled_at"] = None
-
     return url_dics
 
 
 def schedule_spider_handler(seed, spider_host = "localhost", spider_port = "6800"):
 
     mmu = MemexMongoUtils()
-    scrapyd_util = ScrapydJob(spider_host, spider_port, project = "discovery-project", screenshot_dir = SCREENSHOT_DIR)
+    scrapyd_util = ScrapydJob(spider_host, spider_port, project = "discovery-project", spider='topical_finder',
+                              screenshot_dir = SCREENSHOT_DIR)
     job_id = scrapyd_util.schedule(seed)
-    mmu.add_job(seed, job_id, project = "discovery-project", spider = "website_finder")
+    mmu.add_job(seed, job_id, project = "discovery-project", spider = "topical_finder")
 
     return True
 
