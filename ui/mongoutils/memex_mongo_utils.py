@@ -104,7 +104,7 @@ class MemexMongoUtils(object):
         if not host:
             docs = self.urlinfo_collection.find({ "display": { "$ne": 0 } }).sort("score", -1).limit(limit)
         else:
-            docs = self.urlinfo_collection.find({"host" : host}).sort("score", -1).limit(limit)
+            docs = self.urlinfo_collection.find({"meta.domain.netloc" : host}).sort("score", -1).limit(limit)
 
         return list(docs)
 
