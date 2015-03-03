@@ -1,3 +1,4 @@
+#start with: `sudo docker-compose up --no-recreate -d` to prevent data loss
 mongodb:
   image: dockerfile/mongodb:latest
   restart: always
@@ -6,6 +7,7 @@ sourcetor:
    restart: always
 splash:
   image: scrapinghub/splash:latest
+  command: -v3 --maxrss=0.6
   volumes: 
     - "./torstuff/proxy-profiles:/etc/splash/proxy-profiles"
   links:
@@ -26,4 +28,3 @@ sourcepin:
     - splash
     - sourcetor
   restart: always
-    
