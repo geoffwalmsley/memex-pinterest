@@ -5,6 +5,10 @@ Tutorial
 .. toctree::
    :maxdepth: 2
 
+Warning
+=======
+
+SourcePin is an experimental piece of software currently in its early stages. Please use at your own risk!
 
 Install & Usage
 ===============
@@ -18,12 +22,13 @@ SourcePin is Docker and Fig based. First you need to install docker, see instruc
     
 Now start SourcePin from the repo root directory by typing ::
      
-     $ sudo docker-compose up
+     $ sudo docker-compose up -d
     
-This will take a little while, be patient. This will also attach to the console and allow you to
-see the applications running.
+The -d flag will ensure that this runs in the background, this is required due to a bug in docker-compose that
+does not properly restart machines if a service crashes. This is important. This will take a little while, be patient.
 
-Then open up a web browser and go to http://localhost. You should see SourcePin running.
+Then open up a web browser and go to http://localhost. You should see SourcePin running (this can take about 30-40
+seconds).
 
 In order to stop SourcePin go to the root directory of the cloned repo in a separate terminal 
 (not the one you did fig up from) and type ::
@@ -36,8 +41,28 @@ To restart SourcePin type ::
     
 This will not attach and will run SourcePin in the background, remember this could take a little while. We 
 currently do not have a working process for attaching to the console when restarting the app. An important note: 
-be careful with the fig up command, it will clear your data and give you a clean instance of SourcePin. Instead, 
-if you want to stop and start without clearing the database, use start/stop. This is important.
+be careful with the docker-compose up command, it will clear your data and give you a clean instance of SourcePin.
+Instead, if you want to stop and start without clearing the database, use start/stop. This is important.
+
+Upgrading SourcePin
+===================
+
+Warning: currently, when upgrading SourcePin, your database will reset unless you backup and reapply your data.
+
+Go to your memex-pinterest repository root and run ::
+
+    $ git pull
+
+Rebuild your SourcePin machine by typing ::
+
+    $ sudo docker-compose build
+
+Your SourcePin Docker image will build. Then do ::
+
+    $ sudo docker-compose up -d
+
+This will reubuild your Docker instances and start SourcePin services, be careful as this step will also
+clear your data This is a limitation of our current Docker install process and we realize this is annoying.
 
 Developers
 ==========
@@ -55,7 +80,6 @@ with a line that says ::
 
 The next time you use the fig up command, your docker instance will rebuild and you will have an instance of
 SourcePin with your changes in it. This is awesome.
-
 
 Using the API
 =============

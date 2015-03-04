@@ -24,6 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="sourcefinder 0.1.0 documentation" href="index.html" />
+    <link rel="next" title="Changelog" href="changelog.html" />
     <link rel="prev" title="Introduction" href="intro.html" />
    
   
@@ -37,6 +38,9 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="changelog.html" title="Changelog"
+             accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="intro.html" title="Introduction"
              accesskey="P">previous</a> |</li>
@@ -55,34 +59,73 @@
 <ul class="simple">
 </ul>
 </div>
+<div class="section" id="warning">
+<h2>Warning<a class="headerlink" href="#warning" title="Permalink to this headline">¶</a></h2>
+<p>SourcePin is an experimental piece of software currently in its early stages. Please use at your own risk!</p>
+</div>
 <div class="section" id="install-usage">
 <h2>Install &amp; Usage<a class="headerlink" href="#install-usage" title="Permalink to this headline">¶</a></h2>
 <p>Download the <a class="reference external" href="https://github.com/TeamHG-Memex/memex-pinterest">SourcePin source code</a>.</p>
 <p>SourcePin is Docker and Fig based. First you need to install docker, see instructions
-<a class="reference external" href="https://docs.docker.com/installation/#installation">here</a>. Next install fig</p>
-<div class="highlight-python"><div class="highlight"><pre>$ sudo pip install fig
+<a class="reference external" href="https://docs.docker.com/installation/#installation">here</a>. Next install fig (fig has been renamed to docker-compose)</p>
+<div class="highlight-python"><div class="highlight"><pre>$ sudo pip install docker-compose
 </pre></div>
 </div>
 <p>Now start SourcePin from the repo root directory by typing</p>
-<div class="highlight-python"><div class="highlight"><pre>$ sudo fig up
+<div class="highlight-python"><div class="highlight"><pre>$ sudo docker-compose up -d
 </pre></div>
 </div>
-<p>This will take a little while, be patient. This will also attach to the console and allow you to
-see the applications running.</p>
-<p>Then open up a web browser and go to <a class="reference external" href="http://localhost">http://localhost</a>. You should see SourcePin running.</p>
+<p>The -d flag will ensure that this runs in the background, this is required due to a bug in docker-compose that
+does not properly restart machines if a service crashes. This is important. This will take a little while, be patient.</p>
+<p>Then open up a web browser and go to <a class="reference external" href="http://localhost">http://localhost</a>. You should see SourcePin running (this can take about 30-40
+seconds).</p>
 <p>In order to stop SourcePin go to the root directory of the cloned repo in a separate terminal
 (not the one you did fig up from) and type</p>
-<div class="highlight-python"><div class="highlight"><pre>$ sudo fig stop
+<div class="highlight-python"><div class="highlight"><pre>$ sudo docker-compose stop
 </pre></div>
 </div>
 <p>To restart SourcePin type</p>
-<div class="highlight-python"><div class="highlight"><pre>$ sudo fig start
+<div class="highlight-python"><div class="highlight"><pre>$ sudo docker-compose start
 </pre></div>
 </div>
 <p>This will not attach and will run SourcePin in the background, remember this could take a little while. We
 currently do not have a working process for attaching to the console when restarting the app. An important note:
-be careful with the fig up command, it will clear your data and give you a clean instance of SourcePin. Instead,
-if you want to stop and start without clearing the database, use start/stop. This is important.</p>
+be careful with the docker-compose up command, it will clear your data and give you a clean instance of SourcePin.
+Instead, if you want to stop and start without clearing the database, use start/stop. This is important.</p>
+</div>
+<div class="section" id="upgrading-sourcepin">
+<h2>Upgrading SourcePin<a class="headerlink" href="#upgrading-sourcepin" title="Permalink to this headline">¶</a></h2>
+<p>Warning: currently, when upgrading SourcePin, your database will reset unless you backup and reapply your data.</p>
+<p>Go to your memex-pinterest repository root and run</p>
+<div class="highlight-python"><div class="highlight"><pre>$ git pull
+</pre></div>
+</div>
+<p>Rebuild your SourcePin machine by typing</p>
+<div class="highlight-python"><div class="highlight"><pre>$ sudo docker-compose build
+</pre></div>
+</div>
+<p>Your SourcePin Docker image will build. Then do</p>
+<div class="highlight-python"><div class="highlight"><pre>$ sudo docker-compose up -d
+</pre></div>
+</div>
+<p>This will reubuild your Docker instances and start SourcePin services, be careful as this step will also
+clear your data This is a limitation of our current Docker install process and we realize this is annoying.</p>
+</div>
+<div class="section" id="developers">
+<h2>Developers<a class="headerlink" href="#developers" title="Permalink to this headline">¶</a></h2>
+<p>Using Docker/Fig as your dev installation can be immensely useful in saving you time getting set up and testing
+your code in an integrated manner. If you want to do this you can go ahead and make your changes in your feature
+branch and then rebuilt the SourcePin Docker image. You can then use fig up and get a fully working SourcePin
+version with your new code in it. Doing this is easy, simply replace the line in fig.yml that says</p>
+<div class="highlight-python"><div class="highlight"><pre>image: acaceres2176/sourcepin
+</pre></div>
+</div>
+<p>with a line that says</p>
+<div class="highlight-python"><div class="highlight"><pre>build: .
+</pre></div>
+</div>
+<p>The next time you use the fig up command, your docker instance will rebuild and you will have an instance of
+SourcePin with your changes in it. This is awesome.</p>
 </div>
 <div class="section" id="using-the-api">
 <h2>Using the API<a class="headerlink" href="#using-the-api" title="Permalink to this headline">¶</a></h2>
@@ -314,13 +357,17 @@ server.py.</p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#warning">Warning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-usage">Install &amp; Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#upgrading-sourcepin">Upgrading SourcePin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#developers">Developers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#using-the-api">Using the API</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#writing-an-analysis-plugin">Writing an analysis plugin</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#thanks">Thanks</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 </ul>
 
 
@@ -346,7 +393,7 @@ server.py.</p>
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.2.3</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.6.3</a>
       
       |
       <a href="_sources/tutorial.txt"

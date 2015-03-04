@@ -7,7 +7,7 @@ Changelog
 
 Unversioned
 ===========
-- First release basic framework & navigation/scoring
+- First release basic framework, navigation & scoring
 
 v1.0
 ====
