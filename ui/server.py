@@ -14,6 +14,7 @@ from handlers import list_workspace, add_workspace, set_workspace_selected, dele
 from handlers import list_keyword, save_keyword, schedule_spider_searchengine_handler, list_search_term, save_search_term
 from handlers import add_known_urls_handler
 from handlers import get_score_handler
+from handlers import submit_query_terms, get_customize_seeds_urls, save_customize_seeds_urls, process_customize_seeds_urls
 import traceback
 try:
     from handlers import train_and_score_mongo
@@ -30,6 +31,7 @@ from mongoutils.errors import DeletingSelectedWorkspaceError
 
 from searchengine.pharma.spiders.basesearchengine import BaseSearchEngineSpider
 from searchengine.pharma.spiders.google_com import GoogleComSpider
+
 
 server_path = os.path.dirname(os.path.realpath(__file__))
 app = Flask(__name__)
@@ -464,6 +466,62 @@ def save_blur_page(level):
     save_blur_level(level)
     return Response("{}", mimetype="application/json")
 
+################ CUSTOMIZE-SEEDS #########################
+@app.route("/customize-seeds", methods = ["GET"])
+@requires_auth
+def get_custom_seeds():
+    # blur_level = get_blur_level()
+    return render_template('customize-seeds.html')
+
+'''
+saves the keywords and also generates the list of urls
+'''
+@app.route("/api/customize-seeds/generate", methods = ["POST"])
+@requires_auth
+def generate_custom_seeds_api():
+
+    keywords = request.json
+    save_keyword(keywords)
+
+    # scm = SeedCrawlerModel()
+    # search_result_urls = scm.submit_query_terms(keywords)
+    search_result_urls = submit_query_terms
+    if search_result_urls == None:
+        out_doc = JSONEncoder().encode(search_result_urls)
+        return Response("{}", mimetype="application/json")
+    else:
+        out_doc = JSONEncoder().encode(search_result_urls)
+        return Response(json.dumps(out_doc), mimetype="application/json")
+
+
+@app.route("/api/customize-seeds/urls", methods = ["GET"])
+@requires_auth
+def get_customize_seeds_urls_api():
+    in_doc = get_customize_seeds_urls()
+    out_doc = JSONEncoder().encode(in_doc)
+    return Response(json.dumps(out_doc), mimetype="application/json")
+
+'''
+saves the list of urls
+'''
+@app.route("/api/customize-seeds/urls", methods = ["POST"])
+@requires_auth
+def save_customize_seeds_urls_api():
+
+    customize_seeds_urls = request.json
+    save_customize_seeds_urls(customize_seeds_urls)
+    return Response("{}", mimetype="application/json")
+
+'''
+Process classified URL's sets
+'''
+@app.route("/api/customize-seeds/urls/process", methods = ["POST"])
+@requires_auth
+def process_customize_seeds_urls_api():
+
+    customize_seeds_urls = request.json
+    process_customize_seeds_urls(customize_seeds_urls)
+    return Response("{}", mimetype="application/json")
 
 
 
@@ -481,7 +539,7 @@ if __name__ == "__main__":
     #from yourapplication import app
     
     http_server = HTTPServer(WSGIContainer(app))
-    http_server.listen(80)
+    http_server.listen(5000)
     IOLoop.instance().start()
     
     #app.run('0.0.0.0', port=80, threaded=True)

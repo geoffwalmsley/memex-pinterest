@@ -1,0 +1,448 @@
+{% extends "layout.html" %}
+{% block content %}
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!--<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">-->
+	<style>
+		body {
+			background: #E9E9E9;
+		}
+		#blog-landing {
+			margin-top: 81px;
+			position: relative;
+			max-width: 100%;
+			width: 100%;
+		}
+		img {
+			width: 100%;
+			max-width: 100%;
+			height: auto;
+		}
+		.white-panel {
+			position: absolute;
+			background: white;
+			box-shadow: 0px 1px 2px rgba(0,0,0,0.3);
+			padding: 10px;
+		}
+		.white-panel h1 {
+			font-size: 1em;
+		}
+		.white-panel h1 a {
+			color: #A92733;
+		}
+		.white-panel:hover {
+			box-shadow: 1px 1px 10px rgba(0,0,0,0.5);
+			margin-top: -5px;
+			-webkit-transition: all 0.3s ease-in-out;
+			-moz-transition: all 0.3s ease-in-out;
+			-o-transition: all 0.3s ease-in-out;
+			transition: all 0.3s ease-in-out;
+		}
+	</style>
+
+	<!--<link href="http://www.jqueryscript.net/css/jquerysctipttop.css" rel="stylesheet" type="text/css">-->
+</head>
+<!-- NAVBAR
+================================================== -->
+
+<body>
+	<div id="top-of-page"></div>
+	<div class="jquery-script-ads">
+		<script type="text/javascript"></script>
+	</div>
+	<!--25,300-->
+	<!-- <button id="page-up" style="width:100%; height:40px; position:absolute; display:none ;" class="btn btn-warning" onclick="loadPrevious();">PAGE UP</button> -->
+	<div class="jquery-script-clear"></div>
+	<div id="container">
+
+		<div class="container marketing">
+			<!--KEYWORDS-->
+			<div class="row" >
+				<div class="col-lg-12">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h3 class="panel-title" style="display:inline;">Target Keywords </h3><a id="memtool" class="glyphicon glyphicon-question-sign" style="opacity:1; font-size:20px;"></a>
+						</div>
+						<div class="panel-body">
+							<div>
+							Enter a keyword
+							</div>
+							<div class="input-group">
+								<input id="addText" type="text" class="form-control">
+								<span class="input-group-btn">
+									<button id="addButton" class="btn btn-default" type="button">
+										Add
+									</button> </span>
+							</div><!-- /input-group -->
+							<div id="tags">
+							</div>
+						</div>
+						<div class="panel-footer">
+							<span class="input-group-btn">
+								<button id="saveButton" class="btn btn-default " type="button">
+									Save
+								</button> &nbsp; &nbsp;&nbsp;
+								<button id="generateUrlsButton" class="btn btn-success " type="button">
+									Generate URLs
+								</button>
+							</span>
+						</div>
+					</div>
+				</div><!-- /.col-lg-6 -->
+			</div><!-- /.row -->
+
+			<!--VOTE FOR DOMAINS-->
+			<div class="row" >
+				<div class="col-lg-12">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h3 class="panel-title" style="display:inline;">Generated Search Results URLs </h3><a id="memtool" class="glyphicon glyphicon-question-sign" style="opacity:1; font-size:20px;"></a>
+						</div>
+						<div class="panel-body">
+							<div>
+								<ul class="nav nav-tabs nav-justified">
+								  <li role="presentation" class="active"><a data-toggle="tab" href="#inbox-tab"><span class="glyphicon glyphicon-envelope"></span>&nbsp;Inbox</a> </li>
+								  <li role="presentation"><a data-toggle="tab" href="#relevant-tab"><span class="glyphicon glyphicon-thumbs-up"></span>&nbsp;Relevant</a></li>
+								  <li role="presentation"><a data-toggle="tab" href="#irrelevant-tab"><span class="glyphicon glyphicon-thumbs-down"></span>&nbsp;Irrelevant</a></li>
+								</ul>
+							</div>
+							<div id="my-tab-content" class="tab-content">
+								<div class="tab-pane active" id="inbox-tab">
+									<!--<h4>Inbox URLs</h4>-->
+									<h6>Click on the &nbsp;<span class="glyphicon glyphicon-thumbs-up"></span>&nbsp;<span class="glyphicon glyphicon-thumbs-down"></span> &nbsp;icons to classify each URL</h6><br/>
+									<ul style="list-style:none">
+									</ul>
+								</div>
+								<div class="tab-pane" id="relevant-tab">
+									<!--<h4>Relevant URLs</h4>-->
+									<h6>Click on the icons to classify each URL</h6><br/>
+									<ul style="list-style:none">
+									</ul>
+								</div>
+								<div class="tab-pane" id="irrelevant-tab">
+									<!--<h4>Irrelevant URLs</h4>-->
+									<h6>Click on the icons to classify each URL</h6><br/>
+									<ul style="list-style:none">
+									</ul>
+								</div>
+							</div>
+						</div>
+						<div class="panel-footer">
+							<span class="input-group-btn">
+								<button id="saveClassificationButton" class="btn btn-default " type="button">
+									Save
+								</button>
+								<button id="processClassificationButton" class="btn btn-success " type="button">
+									Process classified URL's sets
+								</button>
+							</span>
+						</div>
+					</div>
+				</div><!-- /.col-lg-6 -->
+			</div><!-- /.row -->
+
+
+		</div>
+	</div>
+
+	<!-- Bootstrap core JavaScript
+	================================================== -->
+	<!-- Placed at the end of the document so the pages load faster -->
+	<!--<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>-->
+	<script src="{{ url_for('static', filename='js/pinterest_grid.js') }}"></script>
+
+	<script>
+
+		var url = '/api/keyword/';
+		var urlStatusMap = [];
+		var self = this;
+
+		function classifyUrl(self){
+			var url = self.dataset.url;
+			var actionString = self.dataset.action;
+			self.parentElement.remove();
+
+			if(actionString == "inbox")
+				action = null;
+			else if(actionString=="relevant")
+				action = true;
+			else if (actionString == "irrelevant")
+				action = false;
+			drawSeedUrls([{"url":url, "status":action}]);
+		}
+
+		var newKey = function(){
+			var key = $('#addText').val();
+			if(key == '')
+				return false;
+			renderTags(key);
+			$('#addText').val('');
+		};
+		
+		var renderTags = function(key){
+			var template =
+			'<button type="button" onclick="remove(this);" class="keyword btn btn-default-inverse btn-sm" style="margin-top:10px">' + 
+				'<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> ####' +
+			'</button>&nbsp;';
+			template = template.replace('####',key);
+			$('#tags').append(template);
+
+		};
+
+		var saveKeywords = function() {
+
+			var keywords = [];
+			$.each($(".keyword"), function(index, elem) {
+				//alert(elem.textContent.trim());
+				keywords.push(elem.textContent.trim());
+			});
+
+
+			var posting = $.ajax({
+				type : "PUT",
+				url : url,
+				contentType: 'application/json',
+				dataType: 'json',
+				data: JSON.stringify(keywords),
+				success : function(data) {
+					//alert(data);
+				}
+			});
+		};
+
+		var renderKeywords = function(data) {
+			var obj = $.parseJSON(data);
+
+			$.each(obj, function(index, elem){
+				renderTags(elem);
+			});
+		};
+
+		var fetchKeywords = function(){
+			var keywords = [];
+			$.each($(".keyword"), function(index, elem) {
+				keywords.push(elem.textContent.trim());
+			});
+
+			var posting = $.ajax({
+				type : "POST",
+				url : '/api/fetch-keyword/',
+				contentType: 'application/json',
+				dataType: 'json',
+				data: JSON.stringify(keywords),
+				success : function(data) {
+					alert(data);
+				}
+			});
+		}
+
+		var generateUrls = function() {
+			var keywords = [];
+			$.each($(".keyword"), function(index, elem) {
+				//alert(elem.textContent.trim());
+				keywords.push(elem.textContent.trim());
+			});
+			var posting = $.ajax({
+				type : "POST",
+				url : '/api/customize-seeds/generate',
+				contentType: 'application/json',
+				dataType: 'json',
+				data: JSON.stringify(keywords),
+				success : function(dataAsString) {
+					var data = $.parseJSON(dataAsString);
+					data = jQuery.grep(data, function(value) {
+					  return !alreadyExists(value);
+					});
+
+					var newUrlStatusMap = [];
+					$.each(data, function(index, elem) {
+						newUrlStatusMap.push({"url": elem, "status":null});
+						urlStatusMap.push({"url": elem, "status":null});
+					});
+
+					self.drawSeedUrls(newUrlStatusMap);
+				}
+			});
+
+			var alreadyExists = function (url){
+				var found = false;
+				$.each(urlStatusMap, function(index, elem) {
+					if(url == elem.url){
+						found = true;
+						return false;
+					}
+				});
+				return found;
+			}
+		};
+
+
+		var saveClassification = function(){
+
+			// loop thru each tab
+			// add to a map<url, status> , where status [true, false, null], where null = inbox
+			var urlStatusMap = [];
+			$.each($("#inbox-tab .url"), function(index, elem) {
+				urlStatusMap.push({"url": elem.textContent.trim(), "status":null});
+			});
+			$.each($("#relevant-tab .url"), function(index, elem) {
+				urlStatusMap.push({"url": elem.textContent.trim(), "status":true});
+			});
+			$.each($("#irrelevant-tab .url"), function(index, elem) {
+				urlStatusMap.push({"url": elem.textContent.trim(), "status":false});
+			});
+
+
+			var posting = $.ajax({
+				type : "POST",
+				url : '/api/customize-seeds/urls',
+				contentType: 'application/json',
+				dataType: 'json',
+				data: JSON.stringify(urlStatusMap),
+				success : function(data) {
+				}
+			});
+		}
+
+		var processClassification = function(){
+
+		// loop thru each tab
+			// add to a map<url, status> , where status [true, false, null], where null = inbox
+			var urlStatusMap = [];
+			$.each($("#inbox-tab .url"), function(index, elem) {
+				urlStatusMap.push({"url": elem.textContent.trim(), "status":null});
+			});
+			$.each($("#relevant-tab .url"), function(index, elem) {
+				urlStatusMap.push({"url": elem.textContent.trim(), "status":true});
+			});
+			$.each($("#irrelevant-tab .url"), function(index, elem) {
+				urlStatusMap.push({"url": elem.textContent.trim(), "status":false});
+			});
+
+
+			var posting = $.ajax({
+				type : "POST",
+				url : '/api/customize-seeds/urls/process',
+				contentType: 'application/json',
+				dataType: 'json',
+				data: JSON.stringify(urlStatusMap),
+				success : function(data) {
+					//TODO
+				}
+			});
+		}
+
+
+		var fetchSeedUrls = function(){
+			var posting = $.ajax({
+				type : "GET",
+				url : '/api/customize-seeds/urls',
+				contentType: 'application/json',
+				dataType: 'json',
+				success : function(dataAsString) {
+					var data = $.parseJSON(dataAsString);
+					urlStatusMap = data;
+					drawSeedUrls(data);
+				}
+			});
+		}
+
+		var drawSeedUrls = function(data){
+
+			var that = this;
+
+			function appendToInbox(elem){
+					var li =
+							'<li >' +
+								'<a title="relevant"   onclick="classifyUrl(this);" data-url="'+ elem.url +'" data-action="relevant"><span class="glyphicon glyphicon-thumbs-up"></span></a> '+ "&nbsp;" +
+								'<a title="irrelevant" onclick="classifyUrl(this);" data-url="'+ elem.url +'" data-action="irrelevant"><span class="glyphicon glyphicon-thumbs-down"></span></a> '+
+								 "&nbsp;" +'<span class="url">'  + elem.url +'</span><a href="'+ elem.url +'">&nbsp;<span class="glyphicon glyphicon-new-window"></span></a>'+
+							'</li>';
+					$("#inbox-tab ul").append(li);
+			};
+
+
+
+			function appendToRelevant(elem){
+					var li =
+							'<li >' +
+								'<a title="inbox"   onclick="classifyUrl(this);" data-url="'+ elem.url +'" data-action="inbox"><span class="glyphicon glyphicon-envelope"></span></a> '+ "&nbsp;" +
+								'<a title="irrelevant" onclick="classifyUrl(this);" data-url="'+ elem.url +'" data-action="irrelevant"><span class="glyphicon glyphicon-thumbs-down"></span></a> '+
+								"&nbsp;" +'<span class="url">'  + elem.url +'</span><a href="'  + elem.url +'">&nbsp;<span class="glyphicon glyphicon-new-window"></span></a>'+
+							'</li>';
+					$("#relevant-tab ul").append(li);
+			};
+
+			function appendToIrrelevant(elem){
+					var li =
+							'<li >' +
+								'<a title="inbox"   onclick="classifyUrl(this);" data-url="'+ elem.url +'" data-action="inbox"><span class="glyphicon glyphicon-envelope"></span></a> '+ "&nbsp;" +
+								'<a title="relevant" onclick="classifyUrl(this);" data-url="'+ elem.url +'" data-action="relevant"><span class="glyphicon glyphicon-thumbs-up"></span></a> '+
+								"&nbsp;" +'<span class="url">'  + elem.url +'</span><a href="'  + elem.url +'">&nbsp;<span class="glyphicon glyphicon-new-window"></span></a>'+
+							'</li>';
+					$("#irrelevant-tab ul").append(li);
+			};
+
+			$.each(data, function(index, elem) {
+
+				if(elem.status === null){
+					appendToInbox(elem);
+				}
+				else if(elem.status === false){
+					appendToIrrelevant(elem);
+				}
+				else if(elem.status === true){
+					appendToRelevant(elem);
+				}
+				else{
+					alert('Error retrieving the data');
+				}
+			});
+		}
+
+		$(document).ready(function() {
+
+			var tooltip_message = "<span>" +
+
+			"Use this to upload keywords about your domain. These should be words that would typically show up in the HTML of the pages you are interested in." +
+			"</span>";
+		
+			console.log("before");
+            $('#memtool').tooltipster({
+                content: $(tooltip_message)
+            });
+			console.log("after");
+
+			$('#addText').keypress(function(e) {
+				if (e.which == 13) {// enter pressed
+					newKey.apply();
+				}
+				else if (e.which == 44) {// ',' pressed
+					newKey.apply();
+					return false;
+				}
+
+			});
+			
+			$('#addButton').click(newKey);
+			$('#saveButton').click(saveKeywords);
+			$('#generateUrlsButton').click(generateUrls);
+			$('#fetchButton').click(fetchKeywords);
+			$('#saveClassificationButton').click(saveClassification);
+			$('#processClassificationButton').click(processClassification);
+
+
+			var keywords = $.get(url, function(data){
+				renderKeywords(data);
+			});
+
+			fetchSeedUrls();
+		});
+
+	</script>
+</body>
+
+</html>
+{% endblock %}

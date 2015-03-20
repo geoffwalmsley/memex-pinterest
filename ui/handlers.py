@@ -4,6 +4,8 @@ from scrapyutils.scrapydutil import ScrapydJob
 from ui.settings import SCREENSHOT_DIR
 from mongoutils.known_hosts import KnownHostsCompare
 from mongoutils.validate import validate_url
+from integration.seed_crawler_model import SeedCrawlerModel
+
 import traceback
 try:
     from ranker.rescore_mongo import train_and_score_mongo
@@ -306,6 +308,36 @@ def get_blur_level():
 def save_blur_level(level):
     mmu = MemexMongoUtils()
     mmu.save_blur_level(level)
+
+
+## customize_seeds_urls
+
+def submit_query_terms(keywords):
+    scm = SeedCrawlerModel()
+    search_result_urls = scm.submit_query_terms(keywords)
+    return search_result_urls;
+
+def get_customize_seeds_urls():
+    mmu = MemexMongoUtils()
+    return mmu.get_customize_seeds_urls()
+
+def save_customize_seeds_urls(customize_seeds_urls):
+    mmu = MemexMongoUtils()
+    mmu.save_customize_seeds_urls(customize_seeds_urls)
+
+def process_customize_seeds_urls(customize_seeds_urls):
+
+    scm = SeedCrawlerModel()
+    positiveURLs = []
+    negativeURLs = []
+
+    for urlStatus in customize_seeds_urls:
+        if urlStatus["status"] is True:
+            positiveURLs.append(urlStatus["url"])
+        elif urlStatus["status"] is False:
+            negativeURLs.append(urlStatus["url"])
+
+    scm.submit_selected_urls(positiveURLs, negativeURLs)
 
 
 if __name__ == "__main__":

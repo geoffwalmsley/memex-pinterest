@@ -15,7 +15,7 @@ import re
 
 class MemexMongoUtils(object):
 
-    def __init__(self, init_db=False, address="mongodb", port=27017, which_collection="crawl-data"):
+    def __init__(self, init_db=False, address="localhost", port=27017, which_collection="crawl-data"):
         """This class  initializes a Memex Mongo object and rebuilds the db collections if you want.
 
         Warning: init_db will delete your collection when set to True
@@ -478,6 +478,23 @@ class MemexMongoUtils(object):
             self.workspace_collection.upsert({"_id" : "_default"}, {'$set' : {"blur_level" : level}})
         else:
             self.workspace_collection.update({"_id" : ObjectId(ws["_id"] )}, {'$set' : {"blur_level" : level}})
+
+
+    ################ SAVE_CUSTOMIZE_SEEDS #########################
+
+    def get_customize_seeds_urls(self):
+        ws = self.get_workspace_selected()
+        if ws == None or "seed-urls" not in ws or ws["seed-urls"] == None:
+            return []
+        else:
+            return list(ws["seed-urls"])
+
+    def save_customize_seeds_urls(self, urlStatusMap):
+        ws = self.get_workspace_selected()
+        if ws == None:
+            self.workspace_collection.upsert({"_id": "_default"}, {'$set': {"seed-urls": urlStatusMap}})
+        else:
+            self.workspace_collection.update({"_id": ObjectId(ws["_id"] )}, {'$set': {"seed-urls": urlStatusMap}})
 
 
 if __name__ == "__main__":
