@@ -10,8 +10,8 @@ DOWNLOADER_MIDDLEWARES = {
     'discovery.robots_mw.RobotsCrawlDelayMiddleware': 100,
     'discovery.randomua_mw.RandomUserAgentMiddleware' : 250,
     'crawlfrontier.contrib.scrapy.middlewares.schedulers.SchedulerDownloaderMiddleware': 500,
-    'discovery.proxy_mw.OnionProxyMiddleware' : 950,
-    'discovery.splash_ext.SplashMiddleware': 1000,
+    'discovery.proxy_mw.OnionProxyMiddleware' : 1000,
+    'discovery.splash_ext.SplashMiddleware': 950,
 }
 
 USER_AGENT_LIST = [
@@ -26,10 +26,10 @@ ROBOTS_CRAWLDELAY_ENABLED = True
 AUTOTHROTTLE_ENABLED = False  # it doesn't play well with RobotsCrawlDelayMiddleware
 DUPEFILTER_CLASS = 'discovery.splash_ext.SplashAwareDupeFilter'  # needed by SplashMiddleware
 HTTPCACHE_STORAGE = 'discovery.splash_ext.SplashAwareFSCacheStorage'  # needed by SplashMiddleware
-SPLASH_URL = 'http://localhost:8050'
-SPLASH_PROXY_URL = 'http://localhost:8051'
+SPLASH_URL = 'http://splash:8050'
+SPLASH_PROXY_URL = 'http://splash:8051'
 
-MONGO_URI = "localhost:27017"
+MONGO_URI = "mongodb:27017"
 MONGO_DATABASE = 'MemexHack'
 ITEM_PIPELINES = {
     'discovery.pipelines.SourcePinPipeline': 100,

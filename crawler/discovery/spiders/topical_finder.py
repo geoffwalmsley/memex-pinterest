@@ -21,7 +21,7 @@ class TopicalFinder(SplashSpiderBase):
     save_html = None
     use_splash = None
 
-    def __init__(self, seed_urls=None, save_html=1, use_splash=0, screenshot_dir=None, op_time=10, **kwargs):
+    def __init__(self, seed_urls=None, save_html=1, use_splash=1, screenshot_dir='/memex-pinterest/ui/static/images/screenshots', op_time=10, **kwargs):
         '''
         Constructs spider instance from command=line or scrapyd daemon.
 
@@ -35,6 +35,8 @@ class TopicalFinder(SplashSpiderBase):
         '''
         super(TopicalFinder, self).__init__(screenshot_dir=screenshot_dir, **kwargs)
         self.screenshot_dir = screenshot_dir
+        log.msg("SCREENSHOT DIR IS SET TO: %s" % str(screenshot_dir), _level=log.DEBUG)
+
         if seed_urls:
             self.start_urls = [add_scheme_if_missing(url) for url in seed_urls.split(',')]
         self.ranker = Ranker.load()
@@ -61,6 +63,9 @@ class TopicalFinder(SplashSpiderBase):
         if is_seed:
             r.meta['is_seed'] = True
             r.meta['score'] = 1.0  # setting maximum score value for seeds
+
+        log.msg("Making request to %s with meta: %s" % (r.url, str(r.meta)), _level=log.DEBUG)
+
         return r
 
     def parse(self, response):
@@ -85,8 +90,19 @@ class TopicalFinder(SplashSpiderBase):
         body = response.body_as_unicode().strip().encode('utf8') or '<html/>'
         score = self.ranker.score_html(body)
         log.msg("TC: %s has score=%f" % (response.url, score), _level=log.DEBUG)
+
         if score > 0.5:
-            for link in self.linkextractor.extract_links(response):
+
+            #!for some reason this is returning the raw splash response JSON
+            #!and not the rendered HTML from splash
+            log.msg(u"\n\n\n****---Response body:\n %s----***\n\n\n" % response.body_as_unicode(), _level=log.DEBUG)
+
+            #for link in self.linkextractor.extract_links(response):
+            #can something like the line below fix it? Seems like a hack...
+            for link in self.linkextractor.extract_links(TextResponse(url=response.url, body=response.meta["splash_response"]["html"]), encoding = 'utf-8'):
+
+                log.msg("****---LINK EXTRACED: %s----***" % str(link.url), _level=log.DEBUG)
+
                 if self.use_splash:
                     r = self._splash_request(url=link.url)
                 else:

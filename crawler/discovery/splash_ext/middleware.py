@@ -88,10 +88,13 @@ class SplashMiddleware(object):
             response.request = request
             response.meta['splash_response'] = data
             if 'html' in data:
+                log.msg("HTML field in data, setting body.", logging.DEBUG)
                 response._encoding = response.encoding
                 response._set_body(data['html'])
 
             self.crawler.stats.inc_value('splash/response_count/%s' % response.status)
+        log.msg("Processed splash response for request %s. Request has meta %s" % (request, str(request.meta)), logging.WARNING)
+
         return response
 
     def _get_slot_key(self, request_or_response):
