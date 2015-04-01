@@ -15,7 +15,7 @@ import re
 
 class MemexMongoUtils(object):
 
-    def __init__(self, init_db=False, address="mongodb", port=27017, which_collection="crawl-data"):
+    def __init__(self, init_db=False, address="localhost", port=27017, which_collection="crawl-data"):
         """This class  initializes a Memex Mongo object and rebuilds the db collections if you want.
 
         Warning: init_db will delete your collection when set to True
@@ -32,6 +32,7 @@ class MemexMongoUtils(object):
         self.workspace_collection = db[workspace_collection_name]
 
         seed_collection_name = "seedinfo"
+        cf_collection_name = "cfinfo"
 
         if which_collection == "cc-crawl-data":
             url_collection_name = "cc-urlinfo"
@@ -50,13 +51,14 @@ class MemexMongoUtils(object):
                 url_collection_name = "urlinfo" + "-" + ws_doc['name']
                 host_collection_name = "hostinfo" + "-" + ws_doc['name']
                 seed_collection_name = "seedinfo" + "-" + ws_doc['name']
-
+                cf_collection_name = "cfinfo" + "-" + ws_doc['name']
         else:
             raise Exception("You have specified an invalid collection, please choose either crawl-data or cc-crawl-data for which_collection")
 
         self.urlinfo_collection = db[url_collection_name]
         self.hostinfo_collection = db[host_collection_name]
         self.seed_collection = db[seed_collection_name]
+        self.cf_collection = db[cf_collection_name]
 
         if init_db:
             print "Got call to initialize db with %s %s" % (url_collection_name, host_collection_name)
@@ -65,6 +67,7 @@ class MemexMongoUtils(object):
                 db.drop_collection(url_collection_name)
                 db.drop_collection(host_collection_name)
                 db.drop_collection(seed_collection_name)
+                db.drop_collection(cf_collection_name)
 
             except:
                 print "handled:"
@@ -73,13 +76,15 @@ class MemexMongoUtils(object):
             db.create_collection(url_collection_name)
             db.create_collection(host_collection_name)
             db.create_collection(seed_collection_name)
+            db.create_collection(cf_collection_name)
 
             # create index and drop any dupes
             self.urlinfo_collection.ensure_index("url", unique=True, drop_dups=True)
             self.hostinfo_collection.ensure_index("host", unique=True, drop_dups=True)
             self.seed_collection.ensure_index("url", unique=True, drop_dups=True)
             self.hostinfo_collection.ensure_index("host_score")
-            self.urlinfo_collection.ensure_index("score")
+            self.cf_collection.ensure_index("meta.fingerprint", unique=True, drop_dups=True)
+            self.cf_collection.ensure_index("score")
 
     def init_workspace(self, address="localhost", port=27017):
         db = self.client["MemexHack"]
@@ -176,7 +181,7 @@ class MemexMongoUtils(object):
 
     def insert_url(self, **kwargs):
         '''
-        Inserts a URL and properly increments the needed host document
+        Inserts a URL and properly increments the needed host document. If URL already exists, it will be skipped.
         
         is_seed,crawled_at,title,url,link_url,link_text,html_rendered,referrer_depth,depth,total_depth,host,referrer_url,html        
         '''
@@ -188,9 +193,11 @@ class MemexMongoUtils(object):
         url_doc = kwargs
         url_doc["host"] = host
         
-        #throws exception if URL already exists, user of method
-        #should take this into account
-        self.urlinfo_collection.save(kwargs)
+        try:
+            self.urlinfo_collection.save(kwargs)
+        except DuplicateKeyError:
+            pass
+
         host_doc = {"host" : host, "num_urls" : 1, "host_score" : None}
 
         #try to insert a new host doc, if fail increment url count
@@ -308,20 +315,22 @@ class MemexMongoUtils(object):
     def add_workspace(self, name):
         self.workspace_collection.save({'name':name, 'selected': False})
 
-
         url_collection_name = "urlinfo" + "-" + name
         host_collection_name = "hostinfo" + "-" + name
         seed_collection_name = "seedinfo" + "-" + name
+        cf_collection_name = "cfinfo" + "-" + name
 
         db = self.client["MemexHack"]
         db.create_collection(url_collection_name)
         db.create_collection(host_collection_name)
         db.create_collection(seed_collection_name)
+        db.create_collection(cf_collection_name)
 
         # create index and drop any dupes
         db[url_collection_name].ensure_index("url", unique=True, drop_dups=True)
         db[host_collection_name].ensure_index("host", unique=True, drop_dups=True)
         db[seed_collection_name].ensure_index("url", unique=True, drop_dups=True)
+        db[cf_collection_name].ensure_index("meta.fingerprint", unique=True, drop_dups=True)
 
     def get_workspace_by_id(self,id):
         return self.workspace_collection.find_one({"_id" : ObjectId( id )})
@@ -353,6 +362,8 @@ class MemexMongoUtils(object):
         db["hostinfo" + "-" + name].drop()
         print "Dropping %s" % ("seedinfo" + "-" + name)
         db["seedinfo" + "-" + name].drop()
+        print "Dropping %s" % ("cfinfo" + "-" + name)
+        db["cfinfo" + "-" + name].drop()
 
     #####################   keyword  #####################
     def list_keyword(self):

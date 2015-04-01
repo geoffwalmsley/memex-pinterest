@@ -1,23 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-import os
 import random
 import datetime
-import json
-import logging
 import base64
-from hashlib import md5
-from urllib import urlencode
-from urlparse import urljoin
 from collections import defaultdict
 from scrapy import log
 
 import scrapy
 from scrapy.contrib.linkextractors import LinkExtractor
-from scrapy.contrib.loader import ItemLoader
-from scrapy.contrib.loader.processor import TakeFirst, MapCompose, Compose
-from inline_requests import inline_requests
 
 from discovery.urlutils import (
     add_scheme_if_missing,
@@ -25,36 +16,44 @@ from discovery.urlutils import (
     get_domain,
 )
 from discovery.screenshots import save_screenshot
+from crawler.discovery.items import WebpageItemLoader
 
 
-class WebpageItem(scrapy.Item):
-    mongo_collection = 'urlinfo'
+class SplashSpiderBase(scrapy.Spider):
+    def __init__(self, screenshot_dir, **kwargs):
+        super(SplashSpiderBase, self).__init__(**kwargs)
+        self.screenshot_dir = screenshot_dir
+        log.msg("Screenshot dir: ", log.INFO)
+        log.msg(self.screenshot_dir, log.INFO)
 
-    url = scrapy.Field()  # url of a page
-    host = scrapy.Field()  # website
-    title = scrapy.Field()  # <title> contents
-    depth = scrapy.Field()  # depth at which the page is found, relative to its website
-    referrer_depth = scrapy.Field()  # depth of the referrer page
-    total_depth = scrapy.Field()  # number of hops from a seed page
-    crawled_at = scrapy.Field()  # datetime in UTC
-    html = scrapy.Field()  # full HTML
-    html_rendered = scrapy.Field()  # full HTML rendered via Splash, optional
-    link_text = scrapy.Field()  # text of the link that lead to this page
-    link_url = scrapy.Field()  # URL of a link that lead to this page
-    referrer_url = scrapy.Field()  # URL of a referrer page
-    is_seed = scrapy.Field()  # this is True for pages from seed websites
-    screenshot_path = scrapy.Field()
-    # score = scrapy.Field()
+    def _splash_request(self, url):
+        screq = scrapy.Request(url, meta={
+            'splash': {
+                'html': '1' if self.save_html else '0',
+                'png': '1',
+                'wait': '2.0',
+                'width': '640',
+                'height': '480',
+                'timeout': '60',
+                'images' : 0
+            },
+            'download_timeout': 60,
+        })
+        return screq
+
+    def _process_splash_response(self, response, ld):
+        screenshot_path = save_screenshot(
+            screenshot_dir=self.screenshot_dir,
+            prefix=get_domain(response.url),
+            png=base64.b64decode(response.meta['splash_response']['png']),
+        )
+        ld.add_value('screenshot_path', screenshot_path)
+
+        if self.save_html:
+            ld.add_value('html_rendered', response.meta['splash_response']['html'])
 
 
-class WebpageItemLoader(ItemLoader):
-    default_item_class = WebpageItem
-    default_output_processor = TakeFirst()
-    link_text_in = MapCompose(unicode, unicode.strip)
-    title_out = Compose(TakeFirst(), unicode.strip)
-
-
-class WebsiteFinderSpider(scrapy.Spider):
+class WebsiteFinderSpider(SplashSpiderBase):
     """
     A spider to find new websites given a comma-separated list of seed URLs.
     To start it from command-line run::
@@ -110,10 +109,10 @@ class WebsiteFinderSpider(scrapy.Spider):
         self.random = random.Random(self.random_seed)
         self.start_urls = [add_scheme_if_missing(url) for url in seed_urls.split(',')]
         self.req_count = defaultdict(int)
-        super(WebsiteFinderSpider, self).__init__(name=None, **kwargs)
-        self.screenshot_dir = screenshot_dir
-        log.msg("Screenshot dir: ", log.INFO)
-        log.msg(self.screenshot_dir, log.INFO)
+        super(WebsiteFinderSpider, self).__init__(name=None, screenshot_dir=screenshot_dir, **kwargs)
+
+    def make_requests_from_url(self, url, is_seed=False):
+        return self._new_request(url, self.parse, {})
 
     def parse(self, response):
         if 'referrer_url' in response.meta:
@@ -129,7 +128,12 @@ class WebsiteFinderSpider(scrapy.Spider):
         """
         Parse a webpage from the "seed" website.
         """
-        yield self._load_webpage_item(response, is_seed=True).load_item()
+        ld = self._load_webpage_item(response, is_seed=True)
+
+        if self.use_splash:
+            self._process_splash_response(response, ld)
+
+        yield ld.load_item()
 
         this_domain = get_domain(response.url)
 
@@ -151,7 +155,6 @@ class WebsiteFinderSpider(scrapy.Spider):
                     max_count=self.max_internal_links_per_seed,
                 )
 
-    @inline_requests
     def parse_external(self, response):
         """
         Parse a webpage from an external website.
@@ -159,12 +162,7 @@ class WebsiteFinderSpider(scrapy.Spider):
         ld = self._load_webpage_item(response, is_seed=False)
 
         if self.use_splash:
-
-            response.meta['depth'] -= 1  # XXX: a hack to keep the same depth
-            splash_resp = yield self._splash_request(response.url)
-            response.meta['depth'] += 1
-
-            self._process_splash_response(response, splash_resp, ld)
+            self._process_splash_response(response, ld)
 
         yield ld.load_item()
 
@@ -187,34 +185,6 @@ class WebsiteFinderSpider(scrapy.Spider):
                     max_count=self.max_external_links_per_domain
                 )
 
-    def _splash_request(self, url):
-        screq = scrapy.Request(url, meta={
-            'splash': {
-                'html': '1' if self.save_html else '0',
-                'png': '1',
-                'wait': '2.0',
-                'width': '640',
-                'height': '480',
-                'timeout': '60',
-                'images' : 0
-            },
-            'download_timeout': 60,
-        })
-        return screq
-
-    def _process_splash_response(self, response, splash_response, ld):
-        data = json.loads(splash_response.body, encoding='utf8')
-
-        screenshot_path = save_screenshot(
-            screenshot_dir=self.screenshot_dir,
-            prefix=get_domain(response.url),
-            png=base64.b64decode(data["png"]),
-        )
-        ld.add_value('screenshot_path', screenshot_path)
-
-        if self.save_html:
-            ld.add_value('html_rendered', data['html'])
-
     def _get_links(self, response):
         links = LinkExtractor().extract_links(response)
 
@@ -234,7 +204,7 @@ class WebsiteFinderSpider(scrapy.Spider):
         depth = response.meta.get('link_depth', 0)
 
         if self.req_count[count_key] <= max_count:
-            return scrapy.Request(link.url, self.parse_external, meta={
+            return self._new_request(link.url, self.parse_external, {
                 'link': link,
                 'link_depth': 0,
                 'referrer_depth': depth,
@@ -254,12 +224,18 @@ class WebsiteFinderSpider(scrapy.Spider):
 
         self.req_count[count_key] += 1
 
-        return scrapy.Request(link.url, callback, meta={
+        return self._new_request(link.url, callback, {
             'link': link,
             'link_depth': depth + 1,
             'referrer_depth': depth,
             'referrer_url': response.url,
         })
+
+    def _new_request(self, url, callback, meta):
+        r = self._splash_request(url) if self.use_splash else scrapy.Request(url)
+        r.callback = callback
+        r.meta.update(meta)
+        return r
 
     def _load_webpage_item(self, response, is_seed):
         depth = response.meta.get('link_depth', 0)
@@ -281,5 +257,4 @@ class WebsiteFinderSpider(scrapy.Spider):
             ld.add_value('link_url', link.url)
             ld.add_value('referrer_url', response.meta['referrer_url'])
             ld.add_value('referrer_depth', response.meta['referrer_depth'])
-
         return ld
