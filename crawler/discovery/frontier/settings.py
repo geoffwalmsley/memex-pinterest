@@ -4,7 +4,7 @@ MAX_NEXT_REQUESTS = 32
 #--------------------------------------------------------
 # Url storage
 #--------------------------------------------------------
-BACKEND = 'discovery.frontier.backend.MongodbScoreBackend'
+BACKEND = 'discovery.frontier.backend.MongodbScoreBackendOverused'
 BACKEND_MONGO_HOSTNAME = 'mongodb'
 BACKEND_MONGO_PORT = 27017
 BACKEND_MONGO_DB_NAME = 'MemexHack'
