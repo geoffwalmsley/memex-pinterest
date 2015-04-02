@@ -74,7 +74,7 @@ class TopicalFinder(SplashSpiderBase):
         self.crawler.signals.connect(self.spider_idle, signal=signals.spider_idle)
 
     def spider_idle(self):
-        log.msg("Spider idle signal caught.")
+        log.msg("Spider idle signal caught.", _level=log.DEBUG)
         raise DontCloseSpider
 
     def parse(self, response):
@@ -97,7 +97,7 @@ class TopicalFinder(SplashSpiderBase):
             return
 
         body = response.body_as_unicode().strip().encode('utf8') or '<html/>'
-        score = self.ranker.score_html(body)
+        score = 1.0 # self.ranker.score_html(body)
         log.msg("TC: %s has score=%f" % (response.url, score), _level=log.DEBUG)
 
         if score > 0.5:
