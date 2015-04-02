@@ -5,6 +5,7 @@ from urlparse import urljoin
 from urllib import urlencode
 import json
 from scrapy import log
+from scrapy.http.headers import Headers
 
 
 class SplashMiddleware(object):
@@ -76,7 +77,7 @@ class SplashMiddleware(object):
 
         # FIXME: original HTTP headers are not respected.
         # To respect them changes to Splash are needed.
-        request.headers = {}
+        request.headers = Headers({'Content-Type': 'application/json'})
         request._set_url(self.splash_url(splash_options, request.url))
 
         self.crawler.stats.inc_value('splash/request_count')
