@@ -91,6 +91,7 @@ class SplashMiddleware(object):
                 log.msg("HTML field in data, setting body.", logging.DEBUG)
                 response._encoding = response.encoding
                 response._set_body(data['html'])
+                response._cached_ubody = None
 
             self.crawler.stats.inc_value('splash/response_count/%s' % response.status)
         log.msg("Processed splash response for request %s. Request has meta %s" % (request, str(request.meta)), logging.WARNING)
