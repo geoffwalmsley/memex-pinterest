@@ -98,7 +98,7 @@ class MongodbBackend(Backend):
                                {"$set": self._to_mongo_dict(backend_page)}, upsert=False)
         return backend_page
 
-    def get_next_requests(self, max_next_pages, downloader_info=None):
+    def get_next_requests(self, max_next_pages, **kwargs):
         # Log
         self.manager.logger.backend.debug('GET_NEXT_PAGES max_next_pages=%s' % max_next_pages)
         now = datetime.utcnow()
