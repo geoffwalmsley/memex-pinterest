@@ -104,11 +104,11 @@ class TopicalFinder(SplashSpiderBase):
 
             #!for some reason this is returning the raw splash response JSON
             #!and not the rendered HTML from splash
-            log.msg(u"\n\n\n****---Response body:\n %s----***\n\n\n" % response.body_as_unicode(), _level=log.DEBUG)
+            #log.msg(u"\n\n\n****---Response body:\n %s----***\n\n\n" % response.body_as_unicode(), _level=log.DEBUG)
 
             #for link in self.linkextractor.extract_links(response):
             #can something like the line below fix it? Seems like a hack...
-            for link in self.linkextractor.extract_links(TextResponse(url=response.url, body=response.meta["splash_response"]["html"]), encoding = 'utf-8'):
+            for link in self.linkextractor.extract_links(response):
 
                 log.msg("****---LINK EXTRACED: %s----***" % str(link.url), _level=log.DEBUG)
 
