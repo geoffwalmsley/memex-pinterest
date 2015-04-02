@@ -90,6 +90,7 @@ class SplashMiddleware(object):
             if 'html' in data:
                 response._encoding = response.encoding
                 response._set_body(data['html'])
+                response._cached_ubody = None
 
             self.crawler.stats.inc_value('splash/response_count/%s' % response.status)
         return response
