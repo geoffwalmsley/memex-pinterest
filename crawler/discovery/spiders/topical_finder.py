@@ -97,7 +97,7 @@ class TopicalFinder(SplashSpiderBase):
             return
 
         body = response.body_as_unicode().strip().encode('utf8') or '<html/>'
-        score = 1.0 # self.ranker.score_html(body)
+        score = self.ranker.score_html(body)
         log.msg("TC: %s has score=%f" % (response.url, score), _level=log.DEBUG)
 
         if score > 0.5:
