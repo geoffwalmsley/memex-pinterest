@@ -58,6 +58,5 @@ LOGSTATS_INTERVAL = 10
 FRONTIER_SETTINGS = 'discovery.frontier.settings'
 SCHEDULER = 'crawlfrontier.contrib.scrapy.schedulers.frontier.CrawlFrontierScheduler'
 
-# TODO concurrency and performance
-CONCURRENT_REQUESTS = 64
+CONCURRENT_REQUESTS = 512
 CONCURRENT_REQUESTS_PER_DOMAIN = 5
