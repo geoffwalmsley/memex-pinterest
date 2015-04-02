@@ -10,7 +10,8 @@ from website_finder import SplashSpiderBase
 from scrapy.http import Request, TextResponse
 from scrapy.contrib.linkextractors import LinkExtractor
 from scrapy.utils.httpobj import urlparse_cached
-from scrapy import log
+from scrapy import log, signals
+from scrapy.exceptions import DontCloseSpider
 
 from datetime import datetime
 
@@ -62,6 +63,14 @@ class TopicalFinder(SplashSpiderBase):
             r.meta['is_seed'] = True
             r.meta['score'] = 1.0  # setting maximum score value for seeds
         return r
+
+    def set_crawler(self, crawler):
+        super(TopicalFinder, self).set_crawler(crawler)
+        self.crawler.signals.connect(self.spider_idle, signal=signals.spider_idle)
+
+    def spider_idle(self):
+        log.msg("Spider idle signal caught.")
+        raise DontCloseSpider
 
     def parse(self, response):
         ld = self._load_webpage_item(response, is_seed=response.meta['is_seed'])
