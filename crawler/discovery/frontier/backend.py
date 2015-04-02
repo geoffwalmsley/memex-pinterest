@@ -3,7 +3,7 @@ from pymongo import MongoClient, DESCENDING
 
 from crawlfrontier import Backend, Request, Response
 from crawlfrontier.exceptions import NotConfigured
-
+from crawlfrontier.contrib.scrapy.overusedbuffer import OverusedBufferScrapy
 from ui.mongoutils.memex_mongo_utils import MemexMongoUtils
 
 
@@ -183,3 +183,11 @@ class MongodbScoreBackend(MongodbBackend):
 
     def _get_sorted_pages(self, max_pages):
         return self.collection.find({'state': self.State.NOT_CRAWLED}).sort('meta.score', DESCENDING).limit(max_pages)
+
+class MongodbScoreBackendOverused(MongodbScoreBackend):
+    def __init__(self, manager):
+        super(MongodbScoreBackendOverused, self).__init__(manager)
+        self._requests_buffer = OverusedBufferScrapy(super(MongodbScoreBackendOverused, self).get_next_requests,
+                                               manager.logger.manager.debug)
+    def get_next_requests(self, max_n_requests, **kwargs):
+        return self._requests_buffer.get_next_requests(max_n_requests, **kwargs)
