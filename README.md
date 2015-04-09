@@ -1,2 +1,1 @@
-memex-hackathon-1
-=================
+Documentation can be found in docs/_build/html/index.html
