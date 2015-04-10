@@ -20,7 +20,10 @@ RUN pip install \
 	flask \
 	html2text \
 	tqdm \
-	gunicorn
+	gunicorn \
+	six \
+	w3lib \
+	SQLAlchemy
 
 RUN pip install numpy --upgrade
 RUN pip install scipy --upgrade
@@ -33,6 +36,12 @@ RUN python setup.py install
 WORKDIR /
 RUN git clone https://github.com/TeamHG-Memex/tldextract.git /tldextract
 WORKDIR /tldextract
+RUN python setup.py install
+
+WORKDIR /
+RUN git clone https://github.com/scrapinghub/crawl-frontier.git /crawl-frontier
+WORKDIR /crawl-frontier
+RUN git checkout development
 RUN python setup.py install
 
 ADD . /memex-pinterest
