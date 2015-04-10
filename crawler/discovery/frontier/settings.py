@@ -1,5 +1,5 @@
 MAX_REQUESTS = 0
-MAX_NEXT_REQUESTS = 32
+MAX_NEXT_REQUESTS = 256
 
 #--------------------------------------------------------
 # Url storage
