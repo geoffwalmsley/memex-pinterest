@@ -54,7 +54,7 @@ class JSONEncoder(json.JSONEncoder):
 
 # ui
 @app.route("/discovery")
-@requires_auth
+#@requires_auth
 def discovery():
 
     seeds = discovery_handler()
@@ -63,7 +63,7 @@ def discovery():
     return render_template('discovery.html', seeds=seeds)
 
 @app.route("/back")
-@requires_auth
+#@requires_auth
 def back(page=1):
 
     path = request.args.get('path')                     #mandatory
@@ -90,7 +90,7 @@ def back(page=1):
     return redirect(redirect_to, code=302)
 
 @app.route("/data")
-@requires_auth
+#@requires_auth
 def data(page=1):
 
     filter_field = request.args.get('filter-field')
@@ -102,7 +102,7 @@ def data(page=1):
                            filter_field = filter_field, filter_regex = filter_regex, use_cc_data=False, blur_level=blur_level, img_height=StaticSettings().host_img_height, img_width=StaticSettings().host_img_width)
 
 @app.route("/cc-data")
-@requires_auth
+#@requires_auth
 def cc_data(page=1):
 
     blur_level = get_blur_level()
@@ -110,7 +110,7 @@ def cc_data(page=1):
     return render_template('data.html', hosts=None, use_cc_data=True, blur_level=blur_level, img_height=StaticSettings().host_img_height, img_width=StaticSettings().host_img_width)
 
 @app.route("/known-data")
-@requires_auth
+#@requires_auth
 def known_data(page=1):
 
     blur_level = get_blur_level()
@@ -119,7 +119,7 @@ def known_data(page=1):
 
 # services
 @app.route("/hosts/<page>")
-@requires_auth
+#@requires_auth
 def load_hosts(page=1):
 
     filter_field = request.args.get('filter-field')
@@ -138,7 +138,7 @@ def load_hosts(page=1):
     return render_template('hosts.html', hosts=hosts, use_cc_data=False, page=page)
 
 @app.route("/cc-hosts/<page>")
-@requires_auth
+#@requires_auth
 def cc_load_hosts(page=1):
 
     show_all = request.args.get('show-all')
@@ -151,7 +151,7 @@ def cc_load_hosts(page=1):
     return render_template('hosts.html', hosts=hosts, which_collection="cc-crawl-data", use_cc_data=True)
 
 @app.route("/known-hosts/<page>")
-@requires_auth
+#@requires_auth
 def known_load_hosts(page=1):
 
     show_all = request.args.get('show-all')
@@ -165,7 +165,7 @@ def known_load_hosts(page=1):
 
 @app.route("/urls")
 @app.route("/urls/<host>")
-@requires_auth
+#@requires_auth
 def urls(host=None):
 
     urls = urls_handler(host)
@@ -185,7 +185,7 @@ def urls(host=None):
 
 @app.route("/cc-urls")
 @app.route("/cc-urls/<host>")
-@requires_auth
+#@requires_auth
 def cc_urls(host=None):
 
     urls = list(urls_handler(host, which_collection="cc-crawl-data"))
@@ -199,7 +199,7 @@ def cc_urls(host=None):
 
 @app.route("/known-urls")
 @app.route("/known-urls/<host>")
-@requires_auth
+#@requires_auth
 def known_urls(host=None):
 
     urls = list(urls_handler(host, which_collection="known-data"))
@@ -212,7 +212,7 @@ def known_urls(host=None):
     return render_template("urls.html", urls=urls, use_known_data=True, blur_level=blur_level, img_height=StaticSettings().url_img_height, img_width=StaticSettings().url_img_width)
 
 @app.route("/add-known", methods = ['GET', 'POST'])
-@requires_auth
+#@requires_auth
 def add_known_urls():
 
     if request.method == 'POST':
@@ -224,7 +224,7 @@ def add_known_urls():
         return render_template("known.html")
 
 @app.route("/schedule-spider/")
-@requires_auth
+#@requires_auth
 def schedule_spider():
 
     url = request.args.get('url')
@@ -232,7 +232,7 @@ def schedule_spider():
     return Response("OK")
 
 @app.route("/url-job-state/")
-@requires_auth
+#@requires_auth
 def get_spider_update():
 
     url = request.args.get('url')
@@ -241,7 +241,7 @@ def get_spider_update():
     return str(state)
 
 @app.route("/mark-interest/<interest>/")
-@requires_auth
+#@requires_auth
 def mark_interest(interest):
 
     url = request.args.get('url')
@@ -260,7 +260,7 @@ def mark_interest(interest):
     return Response("OK")
 
 @app.route("/set-score/<score>/")
-@requires_auth
+#@requires_auth
 def set_score(score):
 
     url = request.args.get('url')
@@ -271,7 +271,7 @@ def set_score(score):
 ############# TAGS #############
 
 @app.route("/api/tags/<term>" , methods=['GET'])
-@requires_auth
+#@requires_auth
 def api_search_term(term):
     in_doc = search_tags(term)
     if in_doc == None:
@@ -282,7 +282,7 @@ def api_search_term(term):
 
 #upsert_tags_to_hosts
 @app.route("/api/tags/<host>", methods=['PUT'])
-@requires_auth
+#@requires_auth
 def api_save_tags(host):
     tags = request.json
     save_tags(host, tags)
@@ -296,7 +296,7 @@ def api_save_tags(host):
 
 ############# /host Hosts #############
 @app.route("/api/host/display/<host>", methods=['PUT'])
-@requires_auth
+#@requires_auth
 def api_save_display(host):
     data = request.json
     displayable = data['display']
@@ -306,13 +306,13 @@ def api_save_display(host):
 ############# Workspaces #############
 @app.route("/")
 @app.route("/workspace/" , methods=['GET'])
-@requires_auth
+#@requires_auth
 def get_workspace_view():
     return render_template("workspace.html")
 
 
 @app.route("/api/workspace/", methods=['GET'])
-@requires_auth
+#@requires_auth
 def get_workspace_api():
     in_doc = list_workspace()
     out_doc = JSONEncoder().encode(in_doc)
@@ -320,7 +320,7 @@ def get_workspace_api():
 
 
 @app.route("/api/workspace/<name>/", methods=['PUT'])
-@requires_auth
+#@requires_auth
 def add_workspace_api(name):
     add_workspace(name)
 
@@ -329,7 +329,7 @@ def add_workspace_api(name):
     return Response(json.dumps(out_doc), mimetype="application/json")
 
 @app.route("/api/workspace/selected/<id>/", methods=['PUT'])
-@requires_auth
+#@requires_auth
 def selected_workspace_api(id):
     set_workspace_selected(id)
 
@@ -338,7 +338,7 @@ def selected_workspace_api(id):
     return Response(json.dumps(out_doc), mimetype="application/json")
 
 @app.route("/api/workspace/<id>/", methods=['DELETE'])
-@requires_auth
+#@requires_auth
 def delete_workspace_api(id):
     try:
         delete_workspace(id)
@@ -353,12 +353,12 @@ def delete_workspace_api(id):
 ############# Keywords #############
 
 @app.route("/keyword/" , methods=['GET'])
-@requires_auth
+#@requires_auth
 def get_keyword_view():
     return render_template("keyword.html")
 
 @app.route("/api/keyword/", methods=['GET'])
-@requires_auth
+#@requires_auth
 def get_keyword_api():
     in_doc = list_keyword()
     out_doc = JSONEncoder().encode(in_doc)
@@ -366,7 +366,7 @@ def get_keyword_api():
 
 
 @app.route("/api/keyword/", methods=['PUT'])
-@requires_auth
+#@requires_auth
 def save_keyword_api():
    # print(request)
    # keywords = request.data
@@ -386,7 +386,7 @@ def save_keyword_api():
         return Response(json.dumps(out_doc), mimetype="application/json")
 
 @app.route("/api/fetch-keyword/", methods=['POST'])
-@requires_auth
+#@requires_auth
 def fetch_keyword_api():
     #url = request.args.get('keywords')
     keywords = request.json
@@ -396,19 +396,19 @@ def fetch_keyword_api():
 
 ########## Search Terms ################
 @app.route("/searchterm/" , methods=['GET'])
-@requires_auth
+#@requires_auth
 def get_search_term_view():
     return render_template("searchterm.html")
 
 @app.route("/api/searchterm/", methods=['GET'])
-@requires_auth
+#@requires_auth
 def get_search_term_api():
     in_doc = list_search_term()
     out_doc = JSONEncoder().encode(in_doc)
     return Response(json.dumps(out_doc), mimetype="application/json")
 
 @app.route("/api/searchterm/", methods=['PUT'])
-@requires_auth
+#@requires_auth
 def save_search_term_api():
     search_terms = request.json
     save_search_term(search_terms)
@@ -423,7 +423,7 @@ def save_search_term_api():
         return Response(json.dumps(out_doc), mimetype="application/json")
 
 @app.route("/api/fetch-searchterm/", methods=['POST'])
-@requires_auth
+#@requires_auth
 def fetch_search_terms_api():
     search_terms = request.json
     #schedule_spider_handler(url)
@@ -433,7 +433,7 @@ def fetch_search_terms_api():
 
 ################ SCORING #########################
 @app.route("/score", methods = ["GET"])
-@requires_auth
+#@requires_auth
 def get_scoring_page():
 
     if request.method == "GET":
@@ -442,7 +442,7 @@ def get_scoring_page():
         return render_template('score.html', num_yes_interest = len(yes_interest_docs), num_no_interest = len(no_interest_docs))
 
 @app.route("/api/rescore", methods = ["POST"])
-@requires_auth
+#@requires_auth
 def start_ranker():
 
     if request.method == "POST":
@@ -453,13 +453,13 @@ def start_ranker():
 
 ################ BLURRING #########################
 @app.route("/blur", methods = ["GET"])
-@requires_auth
+#@requires_auth
 def get_blur_page():
     blur_level = get_blur_level()
     return render_template('blur.html', blur_level=blur_level)
 
 @app.route("/api/blur/<level>", methods = ["POST"])
-@requires_auth
+#@requires_auth
 def save_blur_page(level):
     save_blur_level(level)
     return Response("{}", mimetype="application/json")
