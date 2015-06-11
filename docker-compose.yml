@@ -1,6 +1,6 @@
 #start with: `sudo docker-compose up --no-recreate -d` to prevent data loss
 mongodb:
-  image: dockerfile/mongodb:latest
+  image: library/mongo:latest
   restart: always
 sourcetor:
    image: acaceres2176/sourcetor
